@@ -132,10 +132,3 @@ discovering_consts = [col for col in df_train.columns if df_train[col].nunique()
 print("Columns with just one value: ", len(discovering_consts), "columns")
 print("Name of constant columns: \n", discovering_consts)
 
-
-
-
-
-
-
-
