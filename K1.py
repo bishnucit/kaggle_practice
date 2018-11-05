@@ -132,3 +132,76 @@ discovering_consts = [col for col in df_train.columns if df_train[col].nunique()
 print("Columns with just one value: ", len(discovering_consts), "columns")
 print("Name of constant columns: \n", discovering_consts)
 
+not_aval_cols = ['socialEngagementType','device.browserSize','device.browserVersion', 'device.flashVersion', 
+                 'device.language' ,'device.mobileDeviceBranding', 'device.mobileDeviceInfo','device.mobileDeviceMarketingName',
+                 'device.mobileDeviceModel', 'device.mobileInputSelector' , 'device.operatingSystemVersion','device.screenColors',
+                 'device.screenResolution', 'geoNetwork.cityId', 'geoNetwork.latitude' ,'geoNetwork.longitude',
+                 'geoNetwork.networkLocation','trafficSource.adwordsClickInfo.criteriaParameters']
+
+def knowningData(df, data_type=object, limit=3): #seting the function with df, 
+    n = df.select_dtypes(include=data_type) #selecting the desired data type
+    for column in n.columns: #initializing the loop
+        print("##############################################")
+        print("Name of column ", column, ': \n', "Uniques: ", df[column].unique()[:limit], "\n",
+              " | ## Total nulls: ", (round(df[column].isnull().sum() / len(df[column]) * 100,2)),
+              " | ## Total unique values: ", df_train.nunique()[column]) #print the data and % of nulls)
+        # print("Percentual of top 3 of: ", column)
+        # print(round(df[column].value_counts()[:3] / df[column].value_counts().sum() * 100,2))
+        print("#############################################")
+        
+knowningData(df_train)
+knowningData(df_train, data_type=int)
+knowningData(df_train, data_type=float)
+df_train.drop(to_drop, axis=1, inplace=True)
+print("Total features dropped: ", len(to_drop))
+print("Shape after dropping: ", df_train.shape)
+
+# We will takeoff all columns where we have a unique value
+# It is useful because this columns don't give us none information
+clean_consts = [col for col in df_train.columns if df_train[col].nunique() == 1]
+
+
+# this function drop all constant columns, inplacing the data 
+df_train.drop('trafficSource.adwordsClickInfo.adNetworkType', axis=1, inplace=True) 
+
+# printing the total of columns dropped and the name of columns 
+print("This useful action will drop: ", len(clean_consts), "columns")
+print("All dropped columns: \n", clean_consts)
+
+df_train.nunique()
+
+# Printing some statistics of our data
+print("Transaction Revenue Min Value: ", 
+      df_train[df_train['totals.transactionRevenue'] > 0]["totals.transactionRevenue"].min()) # printing the min value
+print("Transaction Revenue Mean Value: ", 
+      df_train[df_train['totals.transactionRevenue'] > 0]["totals.transactionRevenue"].mean()) # mean value
+print("Transaction Revenue Median Value: ", 
+      df_train[df_train['totals.transactionRevenue'] > 0]["totals.transactionRevenue"].median()) # median value
+print("Transaction Revenue Max Value: ", 
+      df_train[df_train['totals.transactionRevenue'] > 0]["totals.transactionRevenue"].max()) # the max value
+
+# It I did to plot the quantiles but are not working
+#print(round(df_train['totals.transactionRevenue'].quantile([.025,.25,.5,.75,.975]),2))
+
+# seting the figure size of our plots
+plt.figure(figsize=(14,5))
+
+# Subplot allow us to plot more than one 
+# in this case, will be create a subplot grid of 2 x 1
+plt.subplot(1,2,1)
+# seting the distribuition of our data and normalizing using np.log on values highest than 0 and + 
+# also, we will set the number of bins and if we want or not kde on our histogram
+ax = sns.distplot(np.log(df_train[df_train['totals.transactionRevenue'] > 0]["totals.transactionRevenue"] + 0.01), bins=40, kde=True)
+ax.set_xlabel('Transaction RevenueLog', fontsize=15) #seting the xlabel and size of font
+ax.set_ylabel('Distribuition', fontsize=15) #seting the ylabel and size of font
+ax.set_title("Distribuition of Revenue Log", fontsize=20) #seting the title and size of font
+
+# setting the second plot of our grid of graphs
+plt.subplot(1,2,2)
+# ordering the total of users and seting the values of transactions to understanding 
+plt.scatter(range(df_train.shape[0]), np.sort(df_train['totals.transactionRevenue'].values))
+plt.xlabel('Index', fontsize=15) # xlabel and size of words
+plt.ylabel('Revenue value', fontsize=15) # ylabel and size of words
+plt.title("Revenue Value Distribution", fontsize=20) # Setting Title and fontsize
+
+plt.show()
