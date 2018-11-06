@@ -94,7 +94,6 @@ df_train = date_process(df_train) #calling the function that we created above
 
 df_train.head(n=2) #printing the first 2 rows of our dataset
 
-
 def FillingNaValues(df):    # fillna numeric feature
     df['totals.pageviews'].fillna(1, inplace=True).astype(int) #filling NA's with 1
     df['totals.newVisits'].fillna(0, inplace=True).astype(int) #filling NA's with 0
