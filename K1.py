@@ -378,6 +378,3 @@ plt.ylabel("Count OS", fontsize=19) # adjusting y label and fontsize
 plt.xticks(rotation=0) # Adjust the xticks, rotating the labels
 
 plt.show() # rendering
-
-
-
