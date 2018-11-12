@@ -378,3 +378,227 @@ plt.ylabel("Count OS", fontsize=19) # adjusting y label and fontsize
 plt.xticks(rotation=0) # Adjust the xticks, rotating the labels
 
 plt.show() # rendering
+
+# explore the distribuition of transaction Revenue by each OS
+(sns.FacetGrid(df_train[(df_train['device.operatingSystem']\
+                        .isin(df_train['device.operatingSystem']\
+                              .value_counts()[:6].index.values)) & df_train['totals.transactionRevenue'] > 0],
+               hue='device.operatingSystem', height=5, aspect=2)
+  .map(sns.kdeplot, 'totals.transactionRevenue', shade=True)
+ .add_legend()
+)
+plt.show()
+
+# Device Category
+# the top 5 of browsers represent % of total
+print("Percentual of Operational System: ")
+print(round(df_train['device.deviceCategory'].value_counts() / len(df_train['device.deviceCategory']) * 100, 2)) # printing the top 7 percentage of browsers
+
+# seting the graph size
+plt.figure(figsize=(14,5))
+
+plt.subplot(1,2,1)
+# let explore the browser used by users
+sns.countplot(df_train["device.deviceCategory"], palette="hls") # It's a module to count the category's
+plt.title("Device Category Count", fontsize=20) # seting the title size
+plt.xlabel("Device Category", fontsize=18) # seting the x label size
+plt.ylabel("Count", fontsize=16) # seting the y label size
+plt.xticks(fontsize=18) # Adjust the xticks, rotating the labels
+
+plt.subplot(1,2,2)
+sns.boxenplot(x="device.deviceCategory", y = 'totals.transactionRevenue', 
+              data=df_train[df_train['totals.transactionRevenue'] > 0], palette="hls") # It's a module to count the category's
+plt.title("Device Category Revenue Distribuition", fontsize=20) # seting the title size
+plt.xlabel("Device Category", fontsize=18) # seting the x label size
+plt.ylabel("Revenue(Log)", fontsize=16) # seting the y label size
+plt.xticks(fontsize=18) # Adjust the xticks, rotating the labels
+
+plt.subplots_adjust(hspace = 0.9, wspace = 0.5)
+
+plt.show() #use plt.show to render the graph that we did above
+
+
+#SubContinent
+# the top 8 of browsers represent % of total
+print("Description of SubContinent count: ")
+print(df_train['geoNetwork.subContinent'].value_counts()[:8]) # printing the top 7 percentage of browsers
+
+# seting the graph size
+plt.figure(figsize=(16,7))
+
+# let explore the browser used by users
+sns.countplot(df_train[df_train['geoNetwork.subContinent']\
+                       .isin(df_train['geoNetwork.subContinent']\
+                             .value_counts()[:15].index.values)]['geoNetwork.subContinent'], palette="hls") # It's a module to count the category's
+plt.title("TOP 15 most frequent SubContinents", fontsize=20) # seting the title size
+plt.xlabel("subContinent Names", fontsize=18) # seting the x label size
+plt.ylabel("SubContinent Count", fontsize=18) # seting the y label size
+plt.xticks(rotation=45) # Adjust the xticks, rotating the labels
+
+plt.show() #use plt.show to render the graph that we did above
+
+
+#SubContinent by Browser
+## I will use the crosstab to explore two categorical values
+
+# At index I will use isin to substitute the loop and get just the values with more than 1%
+crosstab_eda = pd.crosstab(index=df_train[df_train['geoNetwork.subContinent']\
+                                          .isin(df_train['geoNetwork.subContinent']\
+                                                .value_counts()[:10].index.values)]['geoNetwork.subContinent'], 
+                           
+                           # at this line, I am using the isin to select just the top 5 of browsers
+                           columns=df_train[df_train['device.browser'].isin(df_train['device.browser']\
+                                                                            .value_counts()[:5].index.values)]['device.browser'])
+# Ploting the crosstab that we did above
+crosstab_eda.plot(kind="bar",    # select the bar to plot the count of categoricals
+                 figsize=(16,7), # adjusting the size of graphs
+                 stacked=True)   # code to unstack 
+plt.title("TOP 10 Most frequent Subcontinents by Browsers used", fontsize=22) # adjusting title and fontsize
+plt.xlabel("Subcontinent Name", fontsize=19) # adjusting x label and fontsize
+plt.ylabel("Count Subcontinent", fontsize=19) # adjusting y label and fontsize
+plt.xticks(rotation=45) # Adjust the xticks, rotating the labels
+plt.legend(loc=1, prop={'size': 12}) # to 
+
+plt.show() # rendering
+
+print('train date:', min(df_train['date']), 'to', max(df_train['date']))
+
+year = df_train['_year'].value_counts()         # counting the Year with value counts
+month = df_train['_month'].value_counts()      # coutning months
+weeday = df_train['_weekday'].value_counts()    # Couting weekday
+day = df_train['_day'].value_counts()              # counting Day
+date = df_train['date'].value_counts()           # Counting date
+
+
+#explore revenue and number of visits by day
+# I saw and take a lot of inspiration to this interactive plots in kernel: 
+# https://www.kaggle.com/jsaguiar/complete-exploratory-analysis-all-columns
+# I learned a lot in this kernel and I will implement and adapted some ideas
+
+#seting some static color options
+color_op = ['#5527A0', '#BB93D7', '#834CF7', '#6C941E', '#93EAEA', '#7425FF', '#F2098A', '#7E87AC', 
+            '#EBE36F', '#7FD394', '#49C35D', '#3058EE', '#44FDCF', '#A38F85', '#C4CEE0', '#B63A05', 
+            '#4856BF', '#F0DB1B', '#9FDBD9', '#B123AC']
+
+# Visits by time train
+
+# couting all entries by date to get number of visits by each date
+dates_temp = df_train['date'].value_counts().to_frame().reset_index().sort_values('index') 
+# renaming the columns to apropriate names
+dates_temp = dates_temp.rename(columns = {"date" : "visits"}).rename(columns = {"index" : "date"})
+
+# creating the first trace with the necessary parameters
+trace = go.Scatter(x=dates_temp.date.astype(str), y=dates_temp.visits,
+                    opacity = 0.8, line = dict(color = color_op[3]), name= 'Visits by day')
+
+# Below we will get the total values by Transaction Revenue Log by date
+dates_temp_sum = df_train.groupby('date')['totals.transactionRevenue'].sum().to_frame().reset_index()
+
+# using the new dates_temp_sum we will create the second trace
+trace1 = go.Scatter(x=dates_temp_sum.date.astype(str), line = dict(color = color_op[1]), name="RevenueLog by day",
+                        y=dates_temp_sum['totals.transactionRevenue'], opacity = 0.8)
+
+# Getting the total values by Transactions by each date
+dates_temp_count = df_train[df_train['totals.transactionRevenue'] > 0].groupby('date')['totals.transactionRevenue'].count().to_frame().reset_index()
+
+# using the new dates_temp_count we will create the third trace
+trace2 = go.Scatter(x=dates_temp_count.date.astype(str), line = dict(color = color_op[5]), name="Sellings by day",
+                        y=dates_temp_count['totals.transactionRevenue'], opacity = 0.8)
+
+#creating the layout the will allow us to give an title and 
+# give us some interesting options to handle with the outputs of graphs
+layout = dict(
+    title= "Informations by Date",
+    xaxis=dict(
+        rangeselector=dict(
+            buttons=list([
+                dict(count=1, label='1m', step='month', stepmode='backward'),
+                dict(count=3, label='3m', step='month', stepmode='backward'),
+                dict(count=6, label='6m', step='month', stepmode='backward'),
+                dict(step='all')
+            ])
+        ),
+        rangeslider=dict(visible = True),
+        type='date'
+    )
+)
+
+# creating figure with the both traces and layout
+fig = dict(data= [trace, trace1, trace2], layout=layout)
+
+#rendering the graphs
+iplot(fig) #it's an equivalent to plt.show()
+
+
+#Select option to display from graph
+# Setting the first trace
+trace1 = go.Histogram(x=df_train["_year"],
+                      name='Year Count')
+
+# Setting the second trace
+trace2 = go.Histogram(x=df_train["_month"],
+                name='Month Count')
+
+# Setting the third trace
+trace3 = go.Bar(y=day.values,
+                x=day.index.values, 
+                name='Day Count')
+
+# Setting the fourth trace
+trace4 = go.Bar(y=weeday.values,
+                x=weeday.index.values,
+                name='Weekday Count')
+
+# puting all traces in the same "array of graphics" to we render it below
+data = [trace1, trace2, trace4, trace3]
+
+#Creating the options to be posible we use in our 
+updatemenus = list([
+    dict(active=-1,
+         x=-0.15,
+         buttons=list([  
+             dict(
+                 label = 'Years Count',
+                 method = 'update',
+                 args = [{'visible': [True, False, False, False,False]}, 
+                         {'title': 'Count of Year'}]),
+             dict(
+                 label = 'Months Count',
+                 method = 'update',
+                 args = [{'visible': [False, True, False, False,False]},
+                         {'title': 'Count of Months'}]),
+             dict(
+                 label = 'WeekDays Count',
+                 method = 'update',
+                 args = [{'visible': [False, False, True, False, False]},
+                         {'title': 'Count of WeekDays'}]),
+            dict(
+                label = 'Days Count ',
+                method = 'update',
+                args = [{'visible': [False, False, False, True,False]},
+                        {'title': 'Count of Day'}]) ])
+    )
+])
+
+
+layout = dict(title='The percentual Distribuitions of Date Features (Select from Dropdown)',
+              showlegend=False,
+              updatemenus=updatemenus,
+#              xaxis = dict(
+#                  type="category"
+#                      ),
+              barmode="group"
+             )
+fig = dict(data=data, layout=layout)
+print("SELECT BELOW: ")
+iplot(fig)
+
+
+
+
+
+
+
+
+
+
