@@ -27,3 +27,36 @@ df['solo_KillDeathRatio'].value_counts()
 
 
 df['solo_RoundsPlayed'].value_counts()
+
+solo=df.filter(regex='solo')
+duo=df.filter(regex='duo')
+squad=df.filter(regex='squad')
+
+print(len(df)
+      ,len(solo)
+      ,len(duo)
+      ,len(squad))
+print(len(df.columns)
+      ,len(solo.columns)
+      ,len(duo.columns)
+      ,len(squad.columns))
+
+corr = df.corr()
+corr.info(verbose=True)
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+cols_to_drop = ['Id', 'groupId', 'matchId', 'matchType','matchTypeReduced']
+cols_to_fit = [col for col in df.columns if col not in cols_to_drop]
+corr = df[cols_to_fit].corr()
+
+plt.figure(figsize=(9,7))
+sns.heatmap(
+    corr,
+    xticklabels=corr.columns.values,
+    yticklabels=corr.columns.values,
+    linecolor='white',
+    linewidths=0.1,
+    cmap="RdBu"
+)
+plt.show()
