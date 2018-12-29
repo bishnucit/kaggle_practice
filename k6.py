@@ -119,9 +119,13 @@ plot('Product_Category_2','Purchase','barh')
 plot('Product_Category_3','Purchase','barh')
 
 
-#most purchased product top 5
+#most purchased product top 3
 fig1, ax1 = plt.subplots(figsize=(14,6))
-df.groupby('Product_ID')['Purchase'].count().nlargest(5).sort_values().plot('barh')
+df.groupby('Product_ID')['Purchase'].count().nlargest(3).sort_values().plot('barh')
+
+#least purchased product top 3
+fig1, ax1 = plt.subplots(figsize=(14,6))
+df.groupby('Product_ID')['Purchase'].count().nsmallest(3).sort_values().plot('barh')
 
 
 #customers staying in current cities made purchases
