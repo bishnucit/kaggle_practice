@@ -14,7 +14,6 @@ def load_df(csv_path='../input/train.csv', nrows=None):
     print(f"Loaded {os.path.basename(csv_path)}. Shape: {df.shape}")
     return df
     
-    
 train_df = load_df()
 test_df = load_df("../input/test.csv")
 
